@@ -145,7 +145,10 @@ class SpotifyAsyncIterator:
             raise StopAsyncIteration
 
         if self._partial:
-            track = PartialTrack(query=f'{track["name"]} - {track["artists"][0]["name"]}')
+            try:
+                track = PartialTrack(query=f'{track["name"]} - {track["artists"][0]["name"]}')
+            except:
+                pass
         else:
             track = (await wavelink.YouTubeTrack.search(query=f'{track["name"]} -'
                                                               f' {track["artists"][0]["name"]}'))[0]
