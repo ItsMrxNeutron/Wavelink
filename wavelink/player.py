@@ -325,7 +325,7 @@ class Player(discord.VoiceProtocol):
             op="seek", guildId=str(self.guild.id), position=position
         )
 
-    async def set_filters(self, equalizerjson: Union[dict, list] = None, karaokejson: dict = None, timescalejson: dict = None, tremolojson: dict = None, vibratojson: dict = None, rotationjson: Union[dict, float] =None, distortionjson: dict = None, channelMixjson: dict = None, lowPassjson: Union[dict, float]= None) -> None:
+    async def set_filters(self, total_json: dict = None,equalizerjson: Union[dict, list] = None, karaokejson: dict = None, timescalejson: dict = None, tremolojson: dict = None, vibratojson: dict = None, rotationjson: Union[dict, float] =None, distortionjson: dict = None, channelMixjson: dict = None, lowPassjson: Union[dict, float]= None) -> None:
         """|coro|
 
         Set filters, basically equalizer and the other customizations to the song but bundled in one requst
@@ -414,6 +414,26 @@ class Player(discord.VoiceProtocol):
                         }
             Or you can pass a float above 0
         """
+        if total_json:
+            if "equalizer" in total_json:
+                equalizerjson = {"equalizer":total_json["equalizer"]}
+            if "karaoke" in total_json:
+                karaokejson = {"karaoke":total_json["karaoke"]}
+            if "timescale" in total_json:
+                timescalejson = {"timescale":total_json["timescale"]}
+            if "tremolo" in total_json:
+                tremolojson = {"tremolo":total_json["tremolo"]}
+            if "vibrato" in total_json:
+                vibratojson = {"vibrato":total_json["vibrato"]}
+            if "rotation" in total_json:
+                rotationjson = {"rotation":total_json["rotation"]}
+            if "distortion" in total_json:
+                distortionjson = {"distortion":total_json["distortion"]}
+            if "channelMix" in total_json:
+                channelMixjson = {"channelMix":total_json["channelMix"]}
+            if "lowPass" in total_json:
+                lowPassjson = {"lowPass":total_json["lowPass"]}
+
         if type(equalizerjson) is list:
             levels = equalizerjson
             equalizerjson = {"equalizer":[{"band": i[0], "gain": i[1]} for i in levels]}
@@ -427,45 +447,86 @@ class Player(discord.VoiceProtocol):
             "op": "filters",
             "guildId": str(self.guild.id)
         }
+        if total_json:
+            if equalizerjson is not None:
+                if type(equalizerjson["equalizer"]) is not list:
+                    raise Exception("Deformed equalizerjson")
+                
+            if karaokejson is not None:
+                if type(karaokejson["karaoke"]["level"]) is not float or type(karaokejson["karaoke"]["monoLevel"]) is not float or type(karaokejson["karaoke"]["filterBand"]) is not float or type(karaokejson["karaoke"]["filterWidth"]) is not float:
+                    raise Exception("Deformed karaokejson")
+                
+            if timescalejson is not None:
+                if type(timescalejson["timescale"]["speed"]) is not float or type(timescalejson["timescale"]["pitch"]) is not float or type(timescalejson["timescale"]["rate"]) is not float:
+                    raise Exception("Deformed timescalejson")
+                
+            if tremolojson is not None:
+                if type(tremolojson["tremolo"]["frequency"]) is not float or type(tremolojson["tremolo"]["depth"]) is not float:
+                    raise Exception("Deformed tremolojson")
+                
+            if vibratojson is not None:
+                if type(vibratojson["vibrato"]["frequency"]) is not float or type(vibratojson["vibrato"]["depth"]) is not float:
+                    raise Exception("Deformed vibratojson")
+                
+            if rotationjson is not None:
+                if type(rotationjson["rotation"]["rotationHz"]) is not float:
+                    raise Exception("Deformed rotationjson")
+                
+            if distortionjson is not None:
+                if type(distortionjson["distortion"]["sinOffset"]) is not float or type(distortionjson["distortion"]["sinScale"]) is not float or type(distortionjson["distortion"]["cosOffset"]) is not float or type(distortionjson["distortion"]["cosScale"]) is not float or type(distortionjson["distortion"]["tanOffset"]) is not float or type(distortionjson["distortion"]["tanScale"]) is not float or type(distortionjson["distortion"]["offset"]) is not float or type(distortionjson["distortion"]["scale"]) is not float:
+                    raise Exception("Deformed distortionjson")
+                
+            if channelMixjson is not None:
+                if type(channelMixjson["channelMix"]["leftToLeft"]) is not float or type(channelMixjson["channelMix"]["leftToRight"]) is not float or type(channelMixjson["channelMix"]["rightToLeft"]) is not float or type(channelMixjson["channelMix"]["rightToRight"]) is not float:
+                    raise Exception("Deformed channelMix")
+                
+            if lowPassjson is not None:
+                if type(lowPassjson["lowPass"]["smoothing"]) is not float:
+                    raise Exception("Deformed lowPassjson")
 
-        if equalizerjson is not None:
-            if type(equalizerjson["equalizer"]) is not list:
-                raise Exception("Deformed equalizerjson")
-            payload.update(equalizerjson)
-        if karaokejson is not None:
-            if type(karaokejson["karaoke"]["level"]) is not float or type(karaokejson["karaoke"]["monoLevel"]) is not float or type(karaokejson["karaoke"]["filterBand"]) is not float or type(karaokejson["karaoke"]["filterWidth"]) is not float:
-                raise Exception("Deformed karaokejson")
-            payload.update(karaokejson)
-        if timescalejson is not None:
-            if type(timescalejson["timescale"]["speed"]) is not float or type(timescalejson["timescale"]["pitch"]) is not float or type(timescalejson["timescale"]["rate"]) is not float:
-                raise Exception("Deformed timescalejson")
-            payload.update(timescalejson)
-        if tremolojson is not None:
-            if type(tremolojson["tremolo"]["frequency"]) is not float or type(tremolojson["tremolo"]["depth"]) is not float:
-                raise Exception("Deformed tremolojson")
-            payload.update(tremolojson)
-        if vibratojson is not None:
-            if type(vibratojson["vibrato"]["frequency"]) is not float or type(vibratojson["vibrato"]["depth"]) is not float:
-                raise Exception("Deformed vibratojson")
-            payload.update(vibratojson)
-        if rotationjson is not None:
-            if type(rotationjson["rotation"]["rotationHz"]) is not float:
-                raise Exception("Deformed rotationjson")
-            payload.update(rotationjson)
-        if distortionjson is not None:
-            if type(distortionjson["distortion"]["sinOffset"]) is not float or type(distortionjson["distortion"]["sinScale"]) is not float or type(distortionjson["distortion"]["cosOffset"]) is not float or type(distortionjson["distortion"]["cosScale"]) is not float or type(distortionjson["distortion"]["tanOffset"]) is not float or type(distortionjson["distortion"]["tanScale"]) is not float or type(distortionjson["distortion"]["offset"]) is not float or type(distortionjson["distortion"]["scale"]) is not float:
-                raise Exception("Deformed distortionjson")
-            payload.update(distortionjson)
-        if channelMixjson is not None:
-            if type(channelMixjson["channelMix"]["leftToLeft"]) is not float or type(channelMixjson["channelMix"]["leftToRight"]) is not float or type(channelMixjson["channelMix"]["rightToLeft"]) is not float or type(channelMixjson["channelMix"]["rightToRight"]) is not float:
-                raise Exception("Deformed channelMix")
-            payload.update(channelMixjson)
-        if lowPassjson is not None:
-            if type(lowPassjson["lowPass"]["smoothing"]) is not float:
-                raise Exception("Deformed lowPassjson")
-            payload.update(lowPassjson)
+            payload = total_json
+                
+        else:
+            if equalizerjson is not None:
+                if type(equalizerjson["equalizer"]) is not list:
+                    raise Exception("Deformed equalizerjson")
+                payload.update(equalizerjson)
+            if karaokejson is not None:
+                if type(karaokejson["karaoke"]["level"]) is not float or type(karaokejson["karaoke"]["monoLevel"]) is not float or type(karaokejson["karaoke"]["filterBand"]) is not float or type(karaokejson["karaoke"]["filterWidth"]) is not float:
+                    raise Exception("Deformed karaokejson")
+                payload.update(karaokejson)
+            if timescalejson is not None:
+                if type(timescalejson["timescale"]["speed"]) is not float or type(timescalejson["timescale"]["pitch"]) is not float or type(timescalejson["timescale"]["rate"]) is not float:
+                    raise Exception("Deformed timescalejson")
+                payload.update(timescalejson)
+            if tremolojson is not None:
+                if type(tremolojson["tremolo"]["frequency"]) is not float or type(tremolojson["tremolo"]["depth"]) is not float:
+                    raise Exception("Deformed tremolojson")
+                payload.update(tremolojson)
+            if vibratojson is not None:
+                if type(vibratojson["vibrato"]["frequency"]) is not float or type(vibratojson["vibrato"]["depth"]) is not float:
+                    raise Exception("Deformed vibratojson")
+                payload.update(vibratojson)
+            if rotationjson is not None:
+                if type(rotationjson["rotation"]["rotationHz"]) is not float:
+                    raise Exception("Deformed rotationjson")
+                payload.update(rotationjson)
+            if distortionjson is not None:
+                if type(distortionjson["distortion"]["sinOffset"]) is not float or type(distortionjson["distortion"]["sinScale"]) is not float or type(distortionjson["distortion"]["cosOffset"]) is not float or type(distortionjson["distortion"]["cosScale"]) is not float or type(distortionjson["distortion"]["tanOffset"]) is not float or type(distortionjson["distortion"]["tanScale"]) is not float or type(distortionjson["distortion"]["offset"]) is not float or type(distortionjson["distortion"]["scale"]) is not float:
+                    raise Exception("Deformed distortionjson")
+                payload.update(distortionjson)
+            if channelMixjson is not None:
+                if type(channelMixjson["channelMix"]["leftToLeft"]) is not float or type(channelMixjson["channelMix"]["leftToRight"]) is not float or type(channelMixjson["channelMix"]["rightToLeft"]) is not float or type(channelMixjson["channelMix"]["rightToRight"]) is not float:
+                    raise Exception("Deformed channelMix")
+                payload.update(channelMixjson)
+            if lowPassjson is not None:
+                if type(lowPassjson["lowPass"]["smoothing"]) is not float:
+                    raise Exception("Deformed lowPassjson")
+                payload.update(lowPassjson)
 
         await self.node._websocket.send(**payload)
+
+        return payload
 
     async def set_equalizer(self, equalizerjson: Union[dict, list]) -> None:
         """|coro|
@@ -488,7 +549,7 @@ class Player(discord.VoiceProtocol):
         """
 
 
-        await self.set_filters(equalizerjson=equalizerjson)
+        payload = await self.set_filters(equalizerjson=equalizerjson)
         # payload = {
         #     "op": "filters",
         #     "guildId": str(self.guild.id),
@@ -515,7 +576,7 @@ class Player(discord.VoiceProtocol):
 
         """
 
-        await self.set_filters(karaokejson=karaokejson)
+        payload = await self.set_filters(karaokejson=karaokejson)
 
     async def set_timescale(self, timescalejson: dict) -> None:
         """|coro|
@@ -534,7 +595,7 @@ class Player(discord.VoiceProtocol):
 
         """
 
-        await self.set_filters(timescalejson=timescalejson)
+        payload = await self.set_filters(timescalejson=timescalejson)
 
     async def set_tremolo(self, tremolojson: dict) -> None:
         """|coro|
@@ -553,7 +614,7 @@ class Player(discord.VoiceProtocol):
 
         """
 
-        await self.set_filters(tremolojson=tremolojson)
+        payload = await self.set_filters(tremolojson=tremolojson)
 
     async def set_vibrato(self, vibratojson: dict) -> None:
         """|coro|
@@ -571,7 +632,7 @@ class Player(discord.VoiceProtocol):
 
         """
 
-        await self.set_filters(vibratojson=vibratojson)
+        payload = await self.set_filters(vibratojson=vibratojson)
 
     async def set_rotation(self, rotationjson: Union[dict, float]) -> None:
         """|coro|
@@ -590,7 +651,7 @@ class Player(discord.VoiceProtocol):
 
         """
 
-        await self.set_filters(rotationjson=rotationjson)
+        payload = await self.set_filters(rotationjson=rotationjson)
 
     async def set_distortion(self, distortionjson: dict) -> None:
         """|coro|
@@ -614,7 +675,7 @@ class Player(discord.VoiceProtocol):
 
         """
 
-        await self.set_filters(distortionjson=distortionjson)
+        payload = await self.set_filters(distortionjson=distortionjson)
 
     async def set_channelMix(self, channelMixjson: dict) -> None:
         """|coro|
@@ -638,7 +699,7 @@ class Player(discord.VoiceProtocol):
 
         """
 
-        await self.set_filters(channelMixjson=channelMixjson)
+        payload = await self.set_filters(channelMixjson=channelMixjson)
 
     async def set_lowPass(self, lowPassjson: Union[dict, float]) -> None:
         """|coro|
@@ -656,7 +717,7 @@ class Player(discord.VoiceProtocol):
 
         """
 
-        await self.set_filters(lowPassjson=lowPassjson)
+        payload = await self.set_filters(lowPassjson=lowPassjson)
 
 
 
